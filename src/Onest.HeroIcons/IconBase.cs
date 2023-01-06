@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Onest.HeroIcons;
+namespace Onest.HeroIcons.Internal;
 
 public class IconBase : ComponentBase
 {
