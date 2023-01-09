@@ -1,42 +1,16 @@
+$heroiconsRepositoryUrl = "https://github.com/tailwindlabs/heroicons.git"
 $componentTemplatePath = "./component-template.razor"
-$libraryRootPath = "../src/Onest.HeroIcons/"
-$tempPath = "../.temp/"
-$solidIconsLocalPath = Join-Path $tempPath "solid/"
-$outlineIconsLocalPath = Join-Path $tempPath "outline/"
-$miniIconsLocalPath = Join-Path $tempPath "mini/"
+$solidIconsLocalPath = "../src/Onest.HeroIcons/Solid/"
+$outlineIconsLocalPath = "../src/Onest.HeroIcons/Outline/"
+$miniIconsLocalPath = "../src/Onest.HeroIcons/Mini/"
 $solidIconsRemotePath = "src/24/solid/*.svg"
 $outlineIconsRemotePath = "src/24/outline/*.svg"
 $miniIconsRemotePath = "src/20/solid/*.svg"
-$heroiconsRepositoryUrl = "https://github.com/tailwindlabs/heroicons.git"
 
-function Get-Icons {
-    # Clone repository to temp directory
-    $tempDirectory = New-TemporaryDirectory
-    git clone $heroiconsRepositoryUrl $tempDirectory
-
-    # Prepare directories and move icons
-    New-Item -ItemType Directory -Path $tempPath
-    New-Item -ItemType Directory -Path $solidIconsLocalPath
-    New-Item -ItemType Directory -Path $outlineIconsLocalPath
-    New-Item -ItemType Directory -Path $miniIconsLocalPath
-    Get-Item (Join-Path $tempDirectory $solidIconsRemotePath) | Move-Item -Destination $solidIconsLocalPath
-    Get-Item (Join-Path $tempDirectory $outlineIconsRemotePath) | Move-Item -Destination $outlineIconsLocalPath
-    Get-Item (Join-Path $tempDirectory $miniIconsRemotePath) | Move-Item -Destination $miniIconsLocalPath
-
-    Remove-Item $tempDirectory -Recurse -Force
-}
-
-function New-TemporaryDirectory {
-    $parent = [System.IO.Path]::GetTempPath()
-    [string] $name = [System.Guid]::NewGuid()
-    $path = Join-Path $parent $name
-    $null = New-Item -ItemType Directory -Path $path
-    return $path
-}
-
-function Convert-KebabToPascal ([Parameter(ValueFromPipeline)] [string] $text) {
+function Convert-KebabToPascalCase ([Parameter(ValueFromPipeline)] [string] $text) {
     ($text -split '-' | ForEach-Object {
-        "$($_.ToCharArray()[0].ToString().ToUpper())$($_.Substring(1))" }) -join ''
+        "$($_.ToCharArray()[0].ToString().ToUpper())$($_.Substring(1))"
+    }) -join ''
 }
 
 function Format-XML ([xml] $xml) {
@@ -46,7 +20,7 @@ function Format-XML ([xml] $xml) {
     $xmlSettings.CheckCharacters = $false
     $xmlSettings.ConformanceLevel = 0
 
-    # Write XML to writers
+    # Write XML to the configured writers
     $stringWriter = New-Object System.IO.StringWriter
     $xmlWriter = [System.XML.XmlWriter]::Create($stringWriter, $xmlSettings)
     $xml.WriteContentTo($xmlWriter)
@@ -56,31 +30,52 @@ function Format-XML ([xml] $xml) {
     Write-Output $stringWriter.ToString()
 }
 
-# Fetch icons from Heroicons repository
-Get-Icons
-
-# Get component template
-$componentTemplate = Get-Content $componentTemplatePath
-
-# Loop through icons and create components
-Get-ChildItem -Path $tempPath -Filter *.svg -Recurse | 
-Foreach-Object {
-    # Read and modify icon's XML
-    [xml] $icon = Get-Content -Path $_.FullName
-    $icon.svg.SetAttribute('__at-sign__attributes', 'Attributes')
-
-    # Format XML and and replace strings
-    $output = (Format-XML $icon) -replace '__at-sign__', '@'
-    $output = $componentTemplate -replace '{SvgContent}', $output
-
-    # Prepare destination directory
-    $destinationDirectory = Join-Path $libraryRootPath $($_.Directory.BaseName | Convert-KebabToPascal)
-    New-Item -Path $destinationDirectory -ItemType Directory -Force
-
-    # Create component in destination directory
-    $componentName = "$($_.BaseName | Convert-KebabToPascal)Icon"
-    $componentPath = Join-Path -Path $destinationDirectory -ChildPath "$($componentName).razor"
-    Set-Content -Path $componentPath -Value $output
+function New-TemporaryDirectory {
+    $parent = [System.IO.Path]::GetTempPath()
+    [string] $name = [System.Guid]::NewGuid()
+    $path = Join-Path $parent $name
+    $null = New-Item $path -ItemType Directory
+    return $path
 }
 
-Remove-Item $tempPath -Recurse -Force
+function Convert-IconsToComponent (
+        [Parameter(ValueFromPipeline)]
+        [Alias("Template")]
+        [string] $componentTemplate,
+        [Alias("Path")]
+        [string] $sourceDirectory,
+        [Alias("Destination")]
+        [string] $destinationDirectory) {
+    # Loop through icons and create components
+    Get-ChildItem -Path $sourceDirectory -Filter *.svg | 
+    Foreach-Object {
+        # Read and modify icon's XML
+        [xml] $icon = Get-Content $_.FullName
+        $icon.svg.SetAttribute('__at-sign__attributes', 'Attributes')
+
+        # Format XML and and replace strings
+        $output = (Format-XML $icon) -replace '__at-sign__', '@'
+        $output = $componentTemplate -replace '{SvgContent}', $output
+
+        # Prepare destination directory
+        New-Item $destinationDirectory -ItemType Directory -Force
+
+        # Create component in destination directory
+        $componentName = "$($_.BaseName | Convert-KebabToPascalCase)Icon"
+        $componentPath = Join-Path $destinationDirectory "$($componentName).razor"
+        Set-Content -Path $componentPath -Value $output
+    }
+}
+
+# Fetch icons from Heroicons repository
+$tempDirectory = New-TemporaryDirectory
+git clone $heroiconsRepositoryUrl $tempDirectory | Out-Null
+
+# Generate components
+$componentTemplate = Get-Content $componentTemplatePath -Raw
+Convert-IconsToComponent -Template $componentTemplate -Path (Join-Path $iconsDirectory $solidIconsRemotePath) -Destination $solidIconsLocalPath
+Convert-IconsToComponent -Template $componentTemplate -Path (Join-Path $iconsDirectory $outlineIconsRemotePath) -Destination $outlineIconsLocalPath
+Convert-IconsToComponent -Template $componentTemplate -Path (Join-Path $iconsDirectory $miniIconsRemotePath) -Destination $miniIconsLocalPath
+
+# Clean-up
+Remove-Item $iconsDirectory -Recurse -Force
