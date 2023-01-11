@@ -38,7 +38,7 @@ function New-TemporaryDirectory {
     return $path
 }
 
-function Convert-IconsToComponent (
+function Convert-IconsToComponents (
         [Parameter(ValueFromPipeline)]
         [Alias("Template")]
         [string] $componentTemplate,
@@ -68,14 +68,17 @@ function Convert-IconsToComponent (
 }
 
 # Fetch icons from Heroicons repository
-$tempDirectory = New-TemporaryDirectory
-git clone $heroiconsRepositoryUrl $tempDirectory | Out-Null
+$iconsDirectory = New-TemporaryDirectory
+git clone $heroiconsRepositoryUrl $iconsDirectory | Out-Null
 
 # Generate components
 $componentTemplate = Get-Content $componentTemplatePath -Raw
-Convert-IconsToComponent -Template $componentTemplate -Path (Join-Path $iconsDirectory $solidIconsRemotePath) -Destination $solidIconsLocalPath
-Convert-IconsToComponent -Template $componentTemplate -Path (Join-Path $iconsDirectory $outlineIconsRemotePath) -Destination $outlineIconsLocalPath
-Convert-IconsToComponent -Template $componentTemplate -Path (Join-Path $iconsDirectory $miniIconsRemotePath) -Destination $miniIconsLocalPath
+Convert-IconsToComponents -Template $componentTemplate -Path (Join-Path $iconsDirectory $solidIconsRemotePath) -Destination $solidIconsLocalPath
+Convert-IconsToComponents -Template $componentTemplate -Path (Join-Path $iconsDirectory $outlineIconsRemotePath) -Destination $outlineIconsLocalPath
+Convert-IconsToComponents -Template $componentTemplate -Path (Join-Path $iconsDirectory $miniIconsRemotePath) -Destination $miniIconsLocalPath
 
 # Clean-up
 Remove-Item $iconsDirectory -Recurse -Force
+
+Write-Host -NoNewLine 'Press any key to continue...';
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
