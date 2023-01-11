@@ -79,6 +79,3 @@ Convert-IconsToComponents -Template $componentTemplate -Path (Join-Path $iconsDi
 
 # Clean-up
 Remove-Item $iconsDirectory -Recurse -Force
-
-Write-Host -NoNewLine 'Press any key to continue...';
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
