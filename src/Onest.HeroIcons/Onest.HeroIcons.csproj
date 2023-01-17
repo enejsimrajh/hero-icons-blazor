@@ -4,7 +4,17 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <PackageIcon>heroicons-logo.png</PackageIcon>
+    <Description>HeroIcons as Blazor components.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\heroicons-logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 
   <ItemGroup>
