@@ -46,6 +46,9 @@ function Convert-IconsToComponents (
         [string] $sourceDirectory,
         [Alias("Destination")]
         [string] $destinationDirectory) {
+    # Prepare destination directory
+    New-Item $destinationDirectory -ItemType Directory -Force
+
     # Loop through icons and create components
     Get-ChildItem -Path $sourceDirectory -Filter *.svg | 
     Foreach-Object {
@@ -56,9 +59,6 @@ function Convert-IconsToComponents (
         # Format XML and and replace strings
         $output = (Format-XML $icon) -replace '__at-sign__', '@'
         $output = $componentTemplate -replace '{SvgContent}', $output
-
-        # Prepare destination directory
-        New-Item $destinationDirectory -ItemType Directory -Force
 
         # Create component in destination directory
         $componentName = "$($_.BaseName | Convert-KebabToPascalCase)Icon"
