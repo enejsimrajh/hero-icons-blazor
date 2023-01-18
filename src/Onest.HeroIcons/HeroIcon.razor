@@ -1,0 +1,18 @@
+﻿@inherits IconBase
+
+<DynamicComponent Type=@Type Parameters=@Attributes />
+
+@code {
+    [Parameter]
+    public Type Type { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        if (Type is null)
+        {
+            throw new ArgumentNullException(nameof(Type));
+        }
+
+        base.OnInitialized();
+    }
+}
