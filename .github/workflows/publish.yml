@@ -5,9 +5,6 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
       
-env:
-  PACKAGE_VERSION: ${{ github.ref_name }}
-
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -22,6 +19,8 @@ jobs:
           source-url: https://nuget.pkg.github.com/enejsimrajh/index.json
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get version from tag
+        run: echo "PACKAGE_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
       - name: Build
         run: dotnet build --configuration Release /p:Version=$PACKAGE_VERSION
         working-directory: src
