@@ -8,8 +8,8 @@ on:
 env:
   BUILD_CONFIGURATION: 'Release'
   DOTNET_VERSION: '7.0.x'
-  REPOSITORY_NAME: Onest.HeroIcons
-  PACKAGE_DIRECTORY: src/${{ env.REPOSITORY_NAME }}/bin/${{ env.BUILD_CONFIGURATION }}
+  PACKAGE_ID: Onest.HeroIcons
+  PACKAGE_DIRECTORY: ${{ github.workspace }}/package
   GITHUB_PACKAGE_REGISTRY_URL: https://nuget.pkg.github.com/enejsimrajh/index.json
 
 jobs:
@@ -31,12 +31,12 @@ jobs:
       - name: Build and create a package
         run: |
           dotnet build --configuration ${{ env.BUILD_CONFIGURATION }} /p:Version=$PACKAGE_VERSION
-          dotnet pack --configuration ${{ env.BUILD_CONFIGURATION }} --no-build /p:Version=$PACKAGE_VERSION
+          dotnet pack --configuration ${{ env.BUILD_CONFIGURATION }} /p:Version=$PACKAGE_VERSION --output ${{ env.PACKAGE_DIRECTORY }} --no-build
         working-directory: src
       - name: Upload a build artifact
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ env.REPOSITORY_NAME }}-${{ env.PACKAGE_VERSION }}
+          name: ${{ env.PACKAGE_ID }}-${{ env.PACKAGE_VERSION }}
           path: ${{ env.PACKAGE_DIRECTORY }}/*.nupkg
           if-no-files-found: error
           retention-days: 7
