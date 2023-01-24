@@ -1,11 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Onest.HeroIcons</PackageId>
     <PackageIcon>heroicons-logo.png</PackageIcon>
-    <Description>HeroIcons as Blazor components.</Description>
+	<PackageTags>blazor;components;library;icons;heroicons;</PackageTags>
+	<Description>HeroIcons as Blazor components.</Description>
+    <RepositoryUrl>https://github.com/enejsimrajh/Onest.HeroIcons</RepositoryUrl>
 	<EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
 
